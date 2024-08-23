@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------------
 
 #pragma once
+#include <string>
 
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.
@@ -100,22 +101,24 @@
         operator MyVec4() const { return MyVec4(x,y,z,w); }
 */
 //---- ...Or use Dear ImGui's own very basic math operators.
-//#define IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
 
 //---- Define constructor to convert your string type to ImStrv (which is a non-owning begin/end pair)
 // This will be inlined as part of ImStrv class declaration.
 // This has two benefits: you won't need to use .c_str(), if length is already computed it is faster.
 //#include <string>
 //#include <string_view>
-//#define IM_STRV_CLASS_EXTRA    ImStrv(const std::string& s)       { Begin = s.c_str(); End = Begin + s.length(); }
-//#define IM_STRV_CLASS_EXTRA    ImStrv(const std::string_view& s)  { Begin = s.data(); End = Begin + s.length(); }
+#define IM_STRV_CLASS_EXTRA    \
+    ImStrv(const std::string& s)       { Begin = s.c_str(); End = Begin + s.length(); } \
+    ImStrv(const std::string_view& s)  { Begin = s.data(); End = Begin + s.length(); } \
+    operator std::string_view() const  { return std::string_view(Begin, (size_t)(End - Begin)); }
 //#define IM_STRV_CLASS_EXTRA    ImStrv(const MyString& s)          { Begin = s.Data; End = s.end(); }
 
 //---- Use 32-bit vertex indices (default is 16-bit) is one way to allow large meshes with more than 64K vertices.
 // Your renderer backend will need to support it (most example renderer backends support both 16/32-bit indices).
 // Another way to allow large meshes while keeping 16-bit indices is to handle ImDrawCmd::VtxOffset in your renderer.
 // Read about ImGuiBackendFlags_RendererHasVtxOffset for details.
-//#define ImDrawIdx unsigned int
+#define ImDrawIdx int
 
 //---- Override ImDrawCallback signature (will need to modify renderer backends accordingly)
 //struct ImDrawList;

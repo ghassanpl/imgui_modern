@@ -6702,6 +6702,13 @@ bool ImGui::Selectable(ImStrv label, bool selected, ImGuiSelectableFlags flags, 
     if (selected != was_selected) //-V547
         g.LastItemData.StatusFlags |= ImGuiItemStatusFlags_ToggledSelection;
 
+    if ((flags & ImGuiSelectableFlags_Border) != 0)
+    {
+        PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+        RenderFrame(bb.Min, bb.Max, {}, true, 0.0f);
+        PopStyleVar();
+    }
+
     // Render
     if (hovered || selected)
     {
@@ -8215,7 +8222,7 @@ static void ImGui::TabBarLayout(ImGuiTabBar* tab_bar)
 
     // Layout all active tabs
     int section_tab_index = 0;
-    float tab_offset = 0.0f;
+    float tab_offset = g.Style.TabBarIndent;
     tab_bar->WidthAllTabs = 0.0f;
     for (int section_n = 0; section_n < 3; section_n++)
     {

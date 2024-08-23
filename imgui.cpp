@@ -1252,6 +1252,7 @@ ImGuiStyle::ImGuiStyle()
     TabBorderSize               = 0.0f;             // Thickness of border around tabs.
     TabMinWidthForCloseButton   = 0.0f;             // Minimum width for close button to appear on an unselected tab when hovered. Set to 0.0f to always show when hovering, set to FLT_MAX to never show close button unless selected.
     TabBarBorderSize            = 1.0f;             // Thickness of tab-bar separator, which takes on the tab active color to denote focus.
+    TabBarIndent                = 0.0f;
     TableAngledHeadersAngle     = 35.0f * (IM_PI / 180.0f); // Angle of angled headers (supported values range from -50 degrees to +50 degrees).
     TableAngledHeadersTextAlign = ImVec2(0.5f,0.0f);// Alignment of angled headers within the cell
     ColorButtonPosition         = ImGuiDir_Right;   // Side of the color button in the ColorEdit4 widget (left/right). Defaults to ImGuiDir_Right.
@@ -2020,16 +2021,6 @@ const char* ImStrSkipBlank(const char* str)
 // You may set IMGUI_USE_STB_SPRINTF to use our default wrapper, or set IMGUI_DISABLE_DEFAULT_FORMAT_FUNCTIONS
 // and setup the wrapper yourself. (FIXME-OPT: Some of our high-level operations such as ImGuiTextBuffer::appendfv() are
 // designed using two-passes worst case, which probably could be improved using the stbsp_vsprintfcb() function.)
-#ifdef IMGUI_USE_STB_SPRINTF
-#ifndef IMGUI_DISABLE_STB_SPRINTF_IMPLEMENTATION
-#define STB_SPRINTF_IMPLEMENTATION
-#endif
-#ifdef IMGUI_STB_SPRINTF_FILENAME
-#include IMGUI_STB_SPRINTF_FILENAME
-#else
-#include "stb_sprintf.h"
-#endif
-#endif // #ifdef IMGUI_USE_STB_SPRINTF
 
 #if defined(_MSC_VER) && !defined(vsnprintf)
 #define vsnprintf _vsnprintf
@@ -3272,6 +3263,7 @@ static const ImGuiDataVarInfo GStyleVarInfo[] =
     { ImGuiDataType_Float, 1, (ImU32)offsetof(ImGuiStyle, TabRounding) },               // ImGuiStyleVar_TabRounding
     { ImGuiDataType_Float, 1, (ImU32)offsetof(ImGuiStyle, TabBorderSize) },             // ImGuiStyleVar_TabBorderSize
     { ImGuiDataType_Float, 1, (ImU32)offsetof(ImGuiStyle, TabBarBorderSize) },          // ImGuiStyleVar_TabBarBorderSize
+    { ImGuiDataType_Float, 1, (ImU32)offsetof(ImGuiStyle, TabBarIndent) },              // ImGuiStyleVar_TabBarIndent
     { ImGuiDataType_Float, 1, (ImU32)offsetof(ImGuiStyle, TableAngledHeadersAngle)},    // ImGuiStyleVar_TableAngledHeadersAngle
     { ImGuiDataType_Float, 2, (ImU32)offsetof(ImGuiStyle, TableAngledHeadersTextAlign)},// ImGuiStyleVar_TableAngledHeadersTextAlign
     { ImGuiDataType_Float, 2, (ImU32)offsetof(ImGuiStyle, ButtonTextAlign) },           // ImGuiStyleVar_ButtonTextAlign
@@ -3527,7 +3519,7 @@ void ImGui::RenderTextEllipsis(ImDrawList* draw_list, const ImVec2& pos_min, con
         if (text.Begin == text_end_ellipsis && text_end_ellipsis < text.End)
         {
             // Always display at least 1 character if there's no room for character + ellipsis
-            text_end_ellipsis = text.Begin + ImTextCountUtf8BytesFromChar(text);
+            text_end_ellipsis = text.Begin + ImTextCountUtf8BytesFromChar(text.Begin, text.End);
             text_size_clipped_x = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, ImStrv(text.Begin, text_end_ellipsis)).x;
         }
         while (text_end_ellipsis > text.Begin && ImCharIsBlankA(text_end_ellipsis[-1]))
@@ -5197,6 +5189,7 @@ void ImGui::EndFrame()
     // End frame
     g.WithinFrameScope = false;
     g.FrameCountEnded = g.FrameCount;
+    g.WindowBroughtToFront = nullptr;
 
     // Initiate moving window + handle left-click and right-click focus
     UpdateMouseMovingWindowEndFrame();
@@ -7355,6 +7348,7 @@ void ImGui::BringWindowToFocusFront(ImGuiWindow* window)
         IM_ASSERT(g.WindowsFocusOrder[n]->FocusOrder == n);
     }
     g.WindowsFocusOrder[new_order] = window;
+    g.WindowBroughtToFront = window;
     window->FocusOrder = (short)new_order;
 }
 
@@ -8164,7 +8158,7 @@ void ImGui::SetKeyboardFocusHere(int offset)
 
     SetNavWindow(window);
 
-    ImGuiNavMoveFlags move_flags = ImGuiNavMoveFlags_IsTabbing | ImGuiNavMoveFlags_Activate | ImGuiNavMoveFlags_FocusApi | ImGuiNavMoveFlags_NoSetNavHighlight;
+    ImGuiNavMoveFlags move_flags = ImGuiNavMoveFlags_Activate | ImGuiNavMoveFlags_FocusApi | ImGuiNavMoveFlags_NoSetNavHighlight;
     ImGuiScrollFlags scroll_flags = window->Appearing ? ImGuiScrollFlags_KeepVisibleEdgeX | ImGuiScrollFlags_AlwaysCenterY : ImGuiScrollFlags_KeepVisibleEdgeX | ImGuiScrollFlags_KeepVisibleEdgeY;
     NavMoveRequestSubmit(ImGuiDir_None, offset < 0 ? ImGuiDir_Up : ImGuiDir_Down, move_flags, scroll_flags); // FIXME-NAV: Once we refactor tabbing, add LegacyApi flag to not activate non-inputable.
     if (offset == -1)
@@ -10436,7 +10430,7 @@ void ImGui::PushItemWidth(float item_width)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
-    window->DC.ItemWidthStack.push_back(window->DC.ItemWidth); // Backup current width
+    window->DC. ItemWidthStack.push_back(window->DC.ItemWidth); // Backup current width
     window->DC.ItemWidth = (item_width == 0.0f ? window->ItemWidthDefault : item_width);
     g.NextItemData.Flags &= ~ImGuiNextItemDataFlags_HasWidth;
 }
@@ -10453,7 +10447,8 @@ void ImGui::PushMultiItemsWidths(int components, float w_full)
     for (int i = components - 1; i > 0; i--)
     {
         float next_split = IM_TRUNC(w_items * i / components);
-        window->DC.ItemWidthStack.push_back(ImMax(prev_split - next_split, 1.0f));
+        float split = ImMax(prev_split - next_split, 1.0f);
+        window->DC.ItemWidthStack.push_back(split);
         prev_split = next_split;
     }
     window->DC.ItemWidth = ImMax(prev_split, 1.0f);

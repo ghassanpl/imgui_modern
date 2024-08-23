@@ -50,7 +50,11 @@
 //  2018-02-06: Misc: Removed call to ImGui::Shutdown() which is not available from 1.60 WIP, user needs to call CreateContext/DestroyContext themselves.
 //  2018-02-06: Inputs: Added mapping for ImGuiKey_Space.
 
-#include "imgui.h"
+#if defined(_CRT_DECLARE_NONSTDC_NAMES) && !_CRT_DECLARE_NONSTDC_NAMES
+typedef long off_t; /// Has to be here because we're using _CRT_DECLARE_NONSTDC_NAMES=0 to disable some stupid MSVC macros
+#endif
+
+#include "../imgui.h"
 #ifndef IMGUI_DISABLE
 #include "imgui_impl_allegro5.h"
 #include <stdint.h>     // uint64_t
@@ -474,7 +478,7 @@ void ImGui_ImplAllegro5_Shutdown()
 }
 
 // ev->keyboard.modifiers seems always zero so using that...
-static void ImGui_ImplAllegro5_UpdateKeyModifiers()
+void ImGui_ImplAllegro5_UpdateKeyModifiers()
 {
     ImGuiIO& io = ImGui::GetIO();
     ALLEGRO_KEYBOARD_STATE keys;
@@ -532,7 +536,6 @@ bool ImGui_ImplAllegro5_ProcessEvent(ALLEGRO_EVENT* ev)
     case ALLEGRO_EVENT_KEY_UP:
         if (ev->keyboard.display == bd->Display)
         {
-            ImGui_ImplAllegro5_UpdateKeyModifiers();
             ImGuiKey key = ImGui_ImplAllegro5_KeyCodeToImGuiKey(ev->keyboard.keycode);
             io.AddKeyEvent(key, (ev->type == ALLEGRO_EVENT_KEY_DOWN));
             io.SetKeyEventNativeData(key, ev->keyboard.keycode, -1); // To support legacy indexing (<1.87 user code)

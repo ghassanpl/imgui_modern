@@ -2005,7 +2005,9 @@ void ImDrawList::AddConcavePolyFilled(const ImVec2* points, const int points_cou
         while (triangulator._TrianglesLeft > 0)
         {
             triangulator.GetNextTriangle(triangle);
-            _IdxWritePtr[0] = (ImDrawIdx)(_VtxCurrentIdx + triangle[0]); _IdxWritePtr[1] = (ImDrawIdx)(_VtxCurrentIdx + triangle[1]); _IdxWritePtr[2] = (ImDrawIdx)(_VtxCurrentIdx + triangle[2]);
+            _IdxWritePtr[0] = (ImDrawIdx)(_VtxCurrentIdx + triangle[0]);
+            _IdxWritePtr[1] = (ImDrawIdx)(_VtxCurrentIdx + triangle[1]);
+            _IdxWritePtr[2] = (ImDrawIdx)(_VtxCurrentIdx + triangle[2]);
             _IdxWritePtr += 3;
         }
         _VtxCurrentIdx += (ImDrawIdx)vtx_count;
@@ -4617,7 +4619,7 @@ static const char proggy_clean_ttf_compressed_data_base85[11980 + 1] =
     "GT4CPGT4CPGT4CPGT4CPGT4CPGT4CP-qekC`.9kEg^+F$kwViFJTB&5KTB&5KTB&5KTB&5KTB&5KTB&5KTB&5KTB&5KTB&5KTB&5KTB&5KTB&5KTB&5KTB&5KTB&5o,^<-28ZI'O?;xp"
     "O?;xpO?;xpO?;xpO?;xpO?;xpO?;xpO?;xpO?;xpO?;xpO?;xpO?;xpO?;xpO?;xp;7q-#lLYI:xvD=#";
 
-static const char* GetDefaultCompressedFontDataTTFBase85()
+const char* GetDefaultCompressedFontDataTTFBase85()
 {
     return proggy_clean_ttf_compressed_data_base85;
 }

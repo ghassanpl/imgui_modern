@@ -19,7 +19,7 @@
 // - Introduction, links and more at the top of imgui.cpp
 
 #pragma once
-#include "imgui.h"      // IMGUI_IMPL_API
+#include "../imgui.h"      // IMGUI_IMPL_API
 #ifndef IMGUI_DISABLE
 
 struct ALLEGRO_DISPLAY;
@@ -30,6 +30,7 @@ IMGUI_IMPL_API void     ImGui_ImplAllegro5_Shutdown();
 IMGUI_IMPL_API void     ImGui_ImplAllegro5_NewFrame();
 IMGUI_IMPL_API void     ImGui_ImplAllegro5_RenderDrawData(ImDrawData* draw_data);
 IMGUI_IMPL_API bool     ImGui_ImplAllegro5_ProcessEvent(ALLEGRO_EVENT* event);
+IMGUI_IMPL_API void     ImGui_ImplAllegro5_UpdateKeyModifiers();
 
 // Use if you want to reset your rendering device without losing Dear ImGui state.
 IMGUI_IMPL_API bool     ImGui_ImplAllegro5_CreateDeviceObjects();

@@ -308,7 +308,7 @@ struct ImStrv
     ImStrv(const char* b, const char* e){ Begin = b; End = e ? e : b ? b + strlen(b) : NULL; }
     inline size_t length() const        { return (size_t)(End - Begin); }
     inline bool empty() const           { return Begin == End; }    // == "" or == NULL
-    inline operator bool() const        { return Begin != NULL; }   // return true when valid ("" is valid, NULL construction is not)
+    explicit inline operator bool() const        { return Begin != NULL; }   // return true when valid ("" is valid, NULL construction is not)
 #ifdef IM_STRV_CLASS_EXTRA
     IM_STRV_CLASS_EXTRA     // Define additional constructor in imconfig.h to convert your string types (e.g. std::string, std::string_view) to ImStrV.
 #endif
@@ -1680,6 +1680,7 @@ enum ImGuiStyleVar_
     ImGuiStyleVar_TabRounding,              // float     TabRounding
     ImGuiStyleVar_TabBorderSize,            // float     TabBorderSize
     ImGuiStyleVar_TabBarBorderSize,         // float     TabBarBorderSize
+    ImGuiStyleVar_TabBarIndent,             // float     TabBarIndent
     ImGuiStyleVar_TableAngledHeadersAngle,  // float  TableAngledHeadersAngle
     ImGuiStyleVar_TableAngledHeadersTextAlign,// ImVec2 TableAngledHeadersTextAlign
     ImGuiStyleVar_ButtonTextAlign,          // ImVec2    ButtonTextAlign
@@ -2112,6 +2113,7 @@ struct ImGuiStyle
     float       TabBorderSize;              // Thickness of border around tabs.
     float       TabMinWidthForCloseButton;  // Minimum width for close button to appear on an unselected tab when hovered. Set to 0.0f to always show when hovering, set to FLT_MAX to never show close button unless selected.
     float       TabBarBorderSize;           // Thickness of tab-bar separator, which takes on the tab active color to denote focus.
+    float       TabBarIndent;           // Thickness of tab-bar separator, which takes on the tab active color to denote focus.
     float       TableAngledHeadersAngle;    // Angle of angled headers (supported values range from -50.0f degrees to +50.0f degrees).
     ImVec2      TableAngledHeadersTextAlign;// Alignment of angled headers within the cell
     ImGuiDir    ColorButtonPosition;        // Side of the color button in the ColorEdit4 widget (left/right). Defaults to ImGuiDir_Right.
